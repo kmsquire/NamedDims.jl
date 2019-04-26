@@ -61,7 +61,14 @@ end
 # We need to implement materialize! because if the wrapper array type does not support setindex
 # then the `similar` based default method will not work
 function Broadcast.materialize(bc::Broadcasted{NamedDimsStyle{S}}) where S
-    inner_bc = Broadcasted{S}(bc.f, bc.args, bc.axes)
+    inner_args = map(bc.args) do arg
+        if arg isa NamedDimsArray
+            parent(arg)
+        else
+            arg
+        end
+    end
+    inner_bc = Broadcasted{S}(bc.f, inner_args, bc.axes)
     data = materialize(inner_bc)
 
     L = broadcasted_names(bc)
@@ -77,18 +84,3 @@ function broadcasted_names(a, bs...)
 end
 broadcasted_names(a::AbstractArray) = names(a)
 broadcasted_names(a) = tuple()
-
-
-
-##################################
-# Tracker.jl Compat
-using Tracker
-using Tracker: TrackedStyle, TrackedReal
-
-function Base.BroadcastStyle(::NamedDimsStyle{A}, b::TrackedStyle) where {A}
-    return NamedDimsStyle(A(), b)
-end
-function Base.BroadcastStyle(a::TrackedStyle, ::NamedDimsStyle{B}) where {B}
-    return NamedDimsStyle(a, B())
-end
-
