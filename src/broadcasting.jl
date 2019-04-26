@@ -82,8 +82,7 @@ broadcasted_names(a) = tuple()
 
 ##################################
 # Tracker.jl Compat
-using Tracker
-using Tracker: TrackedStyle, TrackedReal
+using Tracker: TrackedStyle
 
 function Base.BroadcastStyle(::NamedDimsStyle{A}, b::TrackedStyle) where {A}
     return NamedDimsStyle(A(), b)
