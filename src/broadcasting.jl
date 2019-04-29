@@ -68,7 +68,9 @@ function Broadcast.materialize(bc::Broadcasted{NamedDimsStyle{S}}) where S
             arg
         end
     end
+    #inner_args = bc.args
     inner_bc = Broadcasted{S}(bc.f, inner_args, bc.axes)
+    @show S
     data = materialize(inner_bc)
 
     L = broadcasted_names(bc)
