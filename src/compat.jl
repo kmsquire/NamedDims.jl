@@ -3,9 +3,10 @@
 using Tracker
 using Tracker: TrackedStyle, TrackedReal
 
+#=
 Broadcast.BroadcastStyle(::BroadcastStyle, ::TrackedStyle) = TrackedStyle()
 Broadcast.BroadcastStyle(::TrackedStyle, ::TrackedStyle) = TrackedStyle()
-
+=#
 
 function Base.BroadcastStyle(::NamedDimsStyle{A}, b::TrackedStyle) where {A}
     return NamedDimsStyle(A(), b)
@@ -26,10 +27,10 @@ function Tracker.data(nda::NamedDimsArray{L}) where{L}
     return NamedDimsArray{L}(content)
 end
 
+#==
 for f in (:forward, :back, :back!, :grad, :istracked, :tracker)
     @eval function Tracker.$f(nda::NamedDimsArray, args...)
         return Tracker.$f(parent(nda), args...)
     end
 end
-
-
+==#
