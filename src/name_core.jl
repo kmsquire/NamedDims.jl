@@ -1,28 +1,28 @@
-# This is the core functionality for manipulating dimension names as express as a tuple
-# It is central to the performance of this named dimensions as a zero cost abstraction
-# For constant input all functions should constant propagate to constant output.
-# Each function in this file is annotated with a comment and a benchmark
+# This is the core functionality for manipulating dimension names expressed as a tuple.
+# It is central to the performance of named dimensions as a zero cost abstraction.
+# For constant input, all functions should constant propagate to constant output.
+# Each function in this file is annotated with a comment and a benchmark;
 # running that benchmark should return 0 allocations,
-# and you can swap its `@btime` for `@code_typed` to check if it is constant propergating
-# This constant propagate lets us write faily naive code elsewhere in the package
-# knowing the creation and destruction of NamedDimsArrays will be optimised away.
+# and you can swap its `@btime` for `@code_typed` to check if it is constant propagating.
+# This constant propagation lets us write faily naive code elsewhere in the package,
+# knowing that the creation and destruction of NamedDimsArrays will be optimised away.
 
 """
     compile_time_return_hack(x)
 
 This is a cunning hack to strongly encourage the compiler to use constant propagation,
 when returning a `Tuple` of `Symbols`.
-Under normal circumstances, constant propergation will not work to fully compute
+Under normal circumstances, constant propagation will not work to fully compute
 returned tuples of non-bits types.
 But because `Symbol`s are a allowed in type-parameters (unlike other nonbits types),
-we can put them into a type-parameter, which triggers (??different??) constant propergation,
+we can put them into a type-parameter, which triggers (??different??) constant propagation,
 (for ??Reasons??)
 and once something is a type-parameter, then extracting it and returning it is non-allocating.
 
 See https://discourse.julialang.org/t/zero-allocation-tuple-subsetting/23122/8
 
 The short version of this is:
-if a function returns a tuple of symbols and is allocating when it looks like it shouldn't
+if a function returns a tuple of symbols and is allocating when it looks like it shouldn't be,
 then try wrapping its returned value in `compile_time_return_hack`.
 and then look at the `@code_lowered` again.
 """
@@ -33,15 +33,14 @@ _compile_time_return_hack(::Val{X}) where X = X
 """
     dim(dimnames, [name])
 
-For `dimnames` being a tuple of names (symbols) for the dimensions.
-If called with just the tuple,
-returns a named tuple, with each name mapped to a dimension.
+`dimnames` is a tuple of names (symbols) for the dimensions.
+If `dim` is called with just this tuple, it
+returns a named tuple, with each name mapped to a dimension,
 e.g `dim((:a, :b)) == (a=1, b=2)`.
 
-If the second `name` argument is given, them the dimension corresponding to that `name`,
-is returned.
-e.g. `dim((:a, :b), :b) == 2`
-If that `name` is not found then `0` is returned.
+If the second `name` argument is given, then the dimension corresponding to that `name`
+is returned, e.g. `dim((:a, :b), :b) == 2`.
+If the `name` is not found, then `0` is returned.
 """
 function dim(dimnames::Tuple)
     # 0-Allocations see: `@btime (()->dim((:a, :b)))()`
@@ -105,7 +104,7 @@ end
 """
     default_inds(dimnames::Tuple)
 This is the default value for all indexing expressions using the given dimnames.
-Which is to say: take a full slice on everything
+Which is to say: take a full slice of everything.
 """
 function default_inds(dimnames::NTuple{N}) where N
     # 0-Allocations
@@ -117,7 +116,7 @@ end
     order_named_inds(dimnames::Tuple; named_inds...)
 
 Returns the values of the `named_inds`, sorted as per the order they appear in `dimnames`,
-with any missing dimnames, having there value set to `:`.
+with any missing dimnames having their value set to `:`.
 An error is thrown if any dimnames are given in `named_inds` that do not occur in `dimnames`.
 """
 function order_named_inds(dimnames::Tuple; named_inds...)
@@ -156,8 +155,8 @@ For example:
  - `(:a, :b)` and `(:b, :c)` cannot be unified as the names at each position to not match.
  - `(:a, :b)` and `(:a, :b, :c)` cannot be unified as they have different lengths
 
-This is the type of name combination used for binary array operations.
-Where the dimensions of both arrays must be the same.
+This is the type of name combination used for binary array operations,
+where the dimensions of both arrays must be the same.
 """
 function unify_names(names_a, names_b)
     # 0-Allocations if inputs are the same
